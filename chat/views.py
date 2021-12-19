@@ -40,7 +40,7 @@ def register(request):
 @login_required
 def index(request):
 	current_user = request.user
-	return render(request, 'chat/index.html', {'member': current_user.member_set.all()})
+	return render(request, 'chat/index.html', {'members': current_user.member_set.all()})
 
 
 @login_required
