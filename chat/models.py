@@ -17,22 +17,22 @@ class GroupCaht(models.Model):
 	creator = models.ForeignKey(User, on_delete=models.CASCADE)
 	title = models.CharField(max_length=50)
 	unique_code = models.CharField(max_length=10, default=UniqueGenerator)
-    date_created = models.DateTimeField(default=datetime.now)
+	date_created = models.DateTimeField(default=datetime.now)
 
 class Member(models.Model):
 	chat = models.ForeignKey(GroupCaht, on_delete=models.CASCADE)
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
-    date_created = models.DateTimeField(default=datetime.now)
+	date_created = models.DateTimeField(default=datetime.now)
 
 
-    def __str__ (self):
-    	return self.user.username
+	def __str__ (self):
+		return self.user.username
 
 
 class Message(models.Model):
 	chat = models.ForeignKey(GroupCaht, on_delete=models.CASCADE)
 	author = models.ForeignKey(User, on_delete=models.CASCADE)
 	text = models.TextField(default="")
-    date_created = models.DateTimeField(default=datetime.now)
+	date_created = models.DateTimeField(default=datetime.now)
 
 	

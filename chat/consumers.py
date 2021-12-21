@@ -28,21 +28,20 @@ class ChatConsumer(AsyncConsumer):
 		)
 		raise StopConsumer()
 
-	async def websocket_receive(self, event);
+	async def websocket_receive(self, event):
 		text_data = event.get('text', None)
 		bytes_data = event.get('bytes', None)
 
 		if text_data:
 			text_data_json = json.loads(text_data)
 			text = text_data_json['text']
-			user_group_name = f"chat_{username}"
 
 
 			await self.channel_layer.group_send(
-				user_group_name,
+				self.chat_room_id,
 				{
 					'type': 'chat_message',
-					'message': text_data
+					'message': json.dumps({'type': "msg", 'sender': self.user.username, 'text': text})
 				}
 			)
 

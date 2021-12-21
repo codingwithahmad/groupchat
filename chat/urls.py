@@ -1,6 +1,5 @@
 from django.urls import path
-from .views import test
-from django.contrib.auth import views as auth_views
+from .views import index, create_chat, chat, leave_chat
 
 app_name = 'chat'
 

@@ -105,12 +105,12 @@ def leave_chat(request, chat_id):
 
 			
 		channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            f"chat_{chat.unique_code}",
-            {
-                'type': 'chat_activity',
-                'message': json.dumps({'type': "leave", 'username': current_user.username})
-            }
-        )
+		async_to_sync(channel_layer.group_send)(
+			f"chat_{chat.unique_code}",
+			{
+				'type': 'chat_activity',
+				'message': json.dumps({'type': "leave", 'username': current_user.username})
+			}
+		)
 
-    return redirect('chat:index')	
+	return redirect('chat:index')	
