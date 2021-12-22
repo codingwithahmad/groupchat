@@ -11,13 +11,13 @@ class ChatConsumer(AsyncConsumer):
 
 
 		await self.channel_layer.group_add(
-			self.chat_room_id,
-			self.channel_name
+				self.chat_room_id,
+				self.channel_name
 		)
 
 
-		await self.channel_layer.group_send({
-			'type': 'websocket.accept'
+		await self.send({
+				'type': 'websocket.accept'
 		})
 
 

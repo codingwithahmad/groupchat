@@ -1,7 +1,7 @@
 import json
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .forms import UserRegisterForm
 from .models import GroupCaht, Member
@@ -22,7 +22,7 @@ def register(request):
 		if form.is_valid():
 			form.save()
 			username = form.cleaned_data.get('username')
-			password = form.cleaned_data.get('password')
+			password = form.cleaned_data.get('password2')
 
 
 			user = authenticate(username=username, password=password)
@@ -31,6 +31,7 @@ def register(request):
 				if user.is_active:
 					login(request, user)
 					return redirect('chat:index')
+			return redirect('login')
 	else:
 		form = UserRegisterForm()
 
@@ -47,8 +48,8 @@ def index(request):
 def create_chat(request):
 	current_user = request.user
 	title = request.POST['group_name']
-	chat = GroupCaht.object.create(creator_id=current_user.id, title=title)
-	Member.object.create(chat_id=chat.id, user_id=current_user.id)
+	chat = GroupCaht.objects.create(creator_id=current_user.id, title=title)
+	Member.objects.create(chat_id=chat.id, user_id=current_user.id)
 	return redirect(reverse('chat:chat', args=[chat.unique_code]))
 
 @login_required
