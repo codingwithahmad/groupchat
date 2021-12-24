@@ -41,11 +41,18 @@ class ChatConsumer(AsyncConsumer):
 				self.chat_room_id,
 				{
 					'type': 'chat_message',
-					'message': json.dumps({'type': "msg", 'sender': self.user.username, 'text': text})
+					'message': json.dumps({'type': "msg", 'sender': self.user.username, 'text': text}),
+					'sender_channel_name': self.channel_name
 				}
 			)
 
 
 	
 	async def chat_message(self, event):
-		pass
+		message = event['message']
+
+		if self.channel_name != event['sender_channel_name']:
+			await self.send({
+					'type': 'websocket.send',
+					'text': message
+			})
