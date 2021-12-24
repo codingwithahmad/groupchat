@@ -46,7 +46,7 @@ class ChatConsumer(AsyncConsumer):
 				}
 			)
 
-
+			
 	
 	async def chat_message(self, event):
 		message = event['message']
