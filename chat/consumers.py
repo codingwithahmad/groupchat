@@ -3,6 +3,9 @@ from channels.consumer import SyncConsumer, AsyncConsumer
 from channels.exceptions import StopConsumer
 from asgiref.sync import async_to_sync
 
+from .models import GroupCaht, Message
+
+
 class ChatConsumer(AsyncConsumer):
 	async def websocket_connect(self, event):
 		self.user = self.scope['user']
@@ -64,3 +67,14 @@ class ChatConsumer(AsyncConsumer):
 			'type': 'websocket.send',
 			'text': message
 		})
+
+
+	def get_chat(self):
+		try:
+			chat = GroupCaht.objects.get(unique_code=self.chat_id)
+			return chat
+		except GroupCaht.DoesNotExist:
+			return None
+
+	def create_message(self):
+		pass
