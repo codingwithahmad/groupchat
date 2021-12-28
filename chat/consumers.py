@@ -1,8 +1,8 @@
 import json
 from channels.consumer import SyncConsumer, AsyncConsumer
 from channels.exceptions import StopConsumer
+from channels.db import database_sync_to_async
 from asgiref.sync import async_to_sync
-
 from .models import GroupCaht, Message
 
 
@@ -10,18 +10,25 @@ class ChatConsumer(AsyncConsumer):
 	async def websocket_connect(self, event):
 		self.user = self.scope['user']
 		self.chat_id = self.scope['url_route']['kwargs']['chat_id']
+		self.chat = await self.get_chat()
 		self.chat_room_id = f"chat_{self.chat_id}"
 
 
-		await self.channel_layer.group_add(
-				self.chat_room_id,
-				self.channel_name
-		)
+
+		if self.chat:
+			await self.channel_layer.group_add(
+					self.chat_room_id,
+					self.channel_name
+			)
 
 
-		await self.send({
-				'type': 'websocket.accept'
-		})
+			await self.send({
+					'type': 'websocket.accept'
+			})
+		else:
+			await self.send({
+				'type': 'websocket.close'
+			})
 
 
 	async def websocket_disconnect(self, event):
@@ -39,6 +46,7 @@ class ChatConsumer(AsyncConsumer):
 			text_data_json = json.loads(text_data)
 			text = text_data_json['text']
 
+			await self.create_message(text)
 
 			await self.channel_layer.group_send(
 				self.chat_room_id,
@@ -69,6 +77,7 @@ class ChatConsumer(AsyncConsumer):
 		})
 
 
+	@database_sync_to_async
 	def get_chat(self):
 		try:
 			chat = GroupCaht.objects.get(unique_code=self.chat_id)
@@ -76,5 +85,6 @@ class ChatConsumer(AsyncConsumer):
 		except GroupCaht.DoesNotExist:
 			return None
 
-	def create_message(self):
-		pass
+	@database_sync_to_async	
+	def create_message(self, text):
+		Message.objects.create(chat_id=self.chat.id, author_id=self.user_id, text=text)
