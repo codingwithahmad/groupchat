@@ -25,4 +25,5 @@ urlpatterns = [
     path('account/login', auth_views.LoginView.as_view(template_name='chat/login.html'), name='login'),
     path('account/logout', auth_views.LoginView.as_view(template_name='chat/logout.html'), name='logout'),
     path('chat/', include('chat.urls')),
+    path('videochat/', chat_views.vide_chat, name="video_chat")
 ]
