@@ -4,10 +4,10 @@ from django.utils.safestring import mark_safe
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .forms import UserRegisterForm
-from .models import GroupCaht, Member
+from .models import GroupCaht, Member, VideoThread
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-
+from django.db.models import Q
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -115,3 +115,9 @@ def leave_chat(request, chat_id):
 		)
 
 	return redirect('chat:index')	
+
+@login_required
+def video_chat(request):
+	current_user = request.user
+	call_log = VideoThread.objects.filter(Q(caller_id=current_user.id) | Q(callee_id=current_user.id)).order_by('-date_created')[:5]
+	return render(request, 'chat/video_chat.html', {'call_log': call_log})
