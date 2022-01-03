@@ -1,3 +1,4 @@
+import datetime
 import json
 from channels.consumer import SyncConsumer, AsyncConsumer
 from channels.exceptions import StopConsumer
@@ -88,3 +89,70 @@ class ChatConsumer(AsyncConsumer):
 	@database_sync_to_async	
 	def create_message(self, text):
 		Message.objects.create(chat_id=self.chat.id, author_id=self.user.id, text=text)
+
+# Video Call Status
+VC_CONTACTING, VC_NOT_AVAILABLE, VC_ACCEPTED, VC_REJECTED, VC_BUSY, VC_PROCESSING, VC_ENDED = \
+	0, 1, 2, 3, 4, 5, 6
+
+class VideoChatConsumer(AsyncConsumer):
+	"""docstring for VideoChatConsumer"""
+	async def websocket_connect(self, event):
+		self.user = self.scope['user']
+		self.user_romm_id = f"videochat_{self.user.id}"
+
+
+	async def chat_message(self, event):
+		message = event['message']
+
+		await self.send({
+				'type': 'websocket.send',
+				'text': message
+		})		
+
+	@database_sync_to_async
+	def get_videothread(self, id):
+		try:
+			videothread = VideoThread.objects.get(id=id)
+			return videothread
+		except VideoThread.DoesNotExist:
+			return None
+		
+	@database_sync_to_async
+	def create_videothread(self, callee_username):
+		try:
+			callee = User.objects.get(username=callee_username)
+		except User.DoesNotExist:
+			return 404, None
+
+		if VideoThread.objects.filter(Q(caller_id=callee.id) | Q(callee_id=callee.id), status=VC_PROCESSING).count() > 0:
+			return VC_BUSY, None
+
+		videothread = VideoThread.objects.create(caller_id=self.user.id, callee_id=callee.id)
+		self.scope['session']['video_thread_id'] = videothread.id
+		self.scope['session'].save()
+
+		return VC_CONTACTING, videothread.id
+
+	@database_sync_to_async
+	def change_videothread_status(self, id, status):
+		try:
+			videothread = VideoThread.objects.get(id=id)
+			videothread.status = status
+			videothread.save()
+			return videothread
+		except VideoThread.DoesNotExist:
+			return None
+
+	@database_sync_to_async
+	def change_videothread_datetime(self, id, is_start):
+		try:
+			videothread = VideoThread.objects.get(id=id)
+			if is_start:
+				videothread.date_start = datetime.now()
+			else:
+				videothread.date_end = datetime.now()
+
+			videothread.save()
+			return videothread
+		except VideoThread.DoesNotExist:
+			return None
