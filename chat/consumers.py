@@ -98,7 +98,18 @@ class VideoChatConsumer(AsyncConsumer):
 	"""docstring for VideoChatConsumer"""
 	async def websocket_connect(self, event):
 		self.user = self.scope['user']
-		self.user_romm_id = f"videochat_{self.user.id}"
+		self.user_room_id = f"videochat_{self.user.id}"
+
+
+		await self.channel_layer.group_add(
+			self.user_room_id,
+			self.channel_name
+		)
+
+
+		await self.send({
+			'type': 'websocket.accept'
+		})
 
 
 	async def chat_message(self, event):
