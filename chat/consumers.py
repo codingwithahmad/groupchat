@@ -111,6 +111,31 @@ class VideoChatConsumer(AsyncConsumer):
 			'type': 'websocket.accept'
 		})
 
+	async def websocket_disconnect(self, event):
+		video_thread_id = self.scope['session'].get('video_thread_id', None)
+		videothread = await self.change_videothread_status(video_thread_id, VC_ENDED)
+
+		if videothread is not None:
+			await self.change_videothread_datetime(video_thread_id, False)
+			await self.channel_layer.group_send(
+				f"videochat_{videothread.caller.id}",
+				{
+					'type': 'chat_message',
+					'message': json.dumps({'type': "offerResult", 'status': VC_ENDED, 'video_thread_id': videothread.id}),
+				}
+			)
+			await self.channel_layer.group_send(
+				f"videochat_{videothread.callee.id}",
+				{
+					'type': 'chat_message',
+					'message': json.dumps({'type': "offerResult", 'status': VC_ENDED, 'video_thread_id': videothread.id}),
+				}
+			)
+		await self.channel_layer.group_discard(
+			self.user_room_id,
+			self.channel_name
+		)
+		raise StopConsumer()
 
 	async def websocket_receive(self, event):
 		text_data = event.get('text', None)
